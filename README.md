@@ -25,6 +25,18 @@ space = "Home"
 url = "https://www.google.com/search?q={*}"                       # {*} takes the rest
 ```
 
+## Install
+
+```sh
+brew install markryall/tap/booksmart
+```
+
+or, with a Rust toolchain:
+
+```sh
+cargo install booksmart
+```
+
 ## Keys
 
 | key | does |
