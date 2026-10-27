@@ -16,8 +16,9 @@ fn main() -> Result<()> {
 
 fn run(terminal: &mut DefaultTerminal, mut app: App) -> Result<()> {
     while !app.should_quit {
+        app.reload();
         terminal.draw(|frame| app.render(frame))?;
-        // wake up regularly even without input, so later changes on disk can show
+        // wake up regularly even without input, so changes on disk show by themselves
         if event::poll(Duration::from_millis(250))?
             && let Event::Key(key) = event::read()?
             && key.kind == KeyEventKind::Press

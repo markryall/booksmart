@@ -2,7 +2,7 @@
 
 mod support;
 
-use support::World;
+use support::{Key, World};
 
 #[test]
 fn empty_bookmarks_file_shows_header_and_hint() {
@@ -21,11 +21,11 @@ fn missing_bookmarks_file_is_treated_as_empty() {
 }
 
 #[test]
-fn q_quits_cleanly_and_restores_the_terminal() {
+fn esc_quits_cleanly_and_restores_the_terminal() {
     let world = World::new();
     let mut session = world.launch();
     session.expect("no bookmarks yet");
-    session.type_text("q");
+    session.press(Key::Esc);
     assert!(
         session.wait_exit(),
         "booksmart exited with a failure status"
