@@ -1,0 +1,26 @@
+name = "4 create with space picker"
+status = "todo"
+description = "n opens a form to create a bookmark: name, url(s), tags, and a space chosen from the adapter's spaces. Spaces are only loaded when the form opens. Saving appends to the file without disturbing existing comments or ordering."
+created_at = "2026-10-27T10:44:00.510597Z"
+updated_at = "2026-10-27T10:44:00.526963Z"
+tags = ["feature"]
+
+[[checklist]]
+text = "feature: n, fill name/url, pick a space from the list, save, and the bookmark shows in the list and the file"
+checked = false
+
+[[checklist]]
+text = "feature: saving with a duplicate name or missing url shows a validation message and keeps the form open"
+checked = false
+
+[[checklist]]
+text = "feature: Esc cancels the form without writing"
+checked = false
+
+[[checklist]]
+text = "unit: appending keeps existing comments and ordering byte for byte"
+checked = false
+
+[[checklist]]
+text = "unit: command adapter lists spaces from config, crest adapter from list_spaces"
+checked = false

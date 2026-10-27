@@ -1,0 +1,22 @@
+name = "6 parameterised links"
+status = "todo"
+description = "Urls may hold {1} {2}.. and {*} placeholders. Opening one asks for the values inline before launching; values are url-escaped. The exact launching experience is still open, so this card settles it first."
+created_at = "2026-10-27T10:44:00.542926Z"
+updated_at = "2026-10-27T10:44:00.555458Z"
+tags = ["feature"]
+
+[[checklist]]
+text = "decide: how values are entered (inline prompt vs typing them after the name in the filter) and record it in the card"
+checked = false
+
+[[checklist]]
+text = "feature: opening a {1} bookmark prompts, and the adapter receives the filled, escaped url"
+checked = false
+
+[[checklist]]
+text = "feature: {*} takes the whole remaining input joined with spaces"
+checked = false
+
+[[checklist]]
+text = "unit: missing values refuse to open and say which placeholder is unfilled"
+checked = false

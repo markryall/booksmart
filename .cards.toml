@@ -1,0 +1,21 @@
+title = "booksmart"
+
+[[statuses]]
+id = "todo"
+label = "Todo"
+color = "#f59e0b"
+
+[[statuses]]
+id = "inprogress"
+label = "In Progress"
+color = "#3b82f6"
+
+[[statuses]]
+id = "done"
+label = "Done"
+color = "#10b981"
+
+[[statuses]]
+id = "blocked"
+label = "Blocked"
+color = "#ef4444"
