@@ -9,6 +9,7 @@ repository = "https://github.com/markryall/booksmart"
 readme = "README.md"
 keywords = ["cli", "tui", "bookmarks", "browser", "launcher"]
 categories = ["command-line-utilities"]
+include = ["src/**", "tests/**", "Cargo.toml", "Cargo.lock", "README.md"]
 
 [dependencies]
 anyhow = "1.0.104"
