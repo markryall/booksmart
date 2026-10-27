@@ -138,11 +138,17 @@ impl Session {
     }
 
     pub fn press(&mut self, key: Key) {
+        let ctrl;
         let bytes: &[u8] = match key {
+            Key::Ctrl(c) => {
+                ctrl = [c.to_ascii_lowercase() as u8 & 0x1f];
+                &ctrl
+            }
             Key::Enter => b"\r",
             Key::Esc => b"\x1b",
             Key::Backspace => b"\x7f",
             Key::Tab => b"\t",
+            Key::BackTab => b"\x1b[Z",
             Key::Up => b"\x1b[A",
             Key::Down => b"\x1b[B",
         };
@@ -176,6 +182,8 @@ impl Drop for Session {
 
 #[derive(Clone, Copy)]
 pub enum Key {
+    Ctrl(char),
+    BackTab,
     Enter,
     Esc,
     Backspace,

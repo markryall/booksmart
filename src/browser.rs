@@ -37,6 +37,18 @@ impl Default for Browser {
 }
 
 impl Browser {
+    /// The spaces a bookmark can be put in.
+    pub fn spaces(&self) -> Result<Vec<String>> {
+        match self {
+            Browser::Command { spaces, .. } => Ok(spaces.clone()),
+            Browser::Crest { path } => Ok(crest::Crest::connect(path)?
+                .spaces()?
+                .into_iter()
+                .map(|s| s.name)
+                .collect()),
+        }
+    }
+
     /// Opens every url, in order, in the space.
     pub fn open(&self, space: &str, urls: &[String]) -> Result<()> {
         let urls: Vec<String> = urls.iter().map(|u| with_scheme(u)).collect();
@@ -133,6 +145,15 @@ mod tests {
             std::fs::read_to_string(log).unwrap(),
             "Work https://a.example.com\nWork https://b.example.com\n"
         );
+    }
+
+    #[test]
+    fn command_spaces_come_from_the_config() {
+        let browser = Browser::Command {
+            command: vec!["true".into()],
+            spaces: vec!["Work".into(), "Home".into()],
+        };
+        assert_eq!(browser.spaces().unwrap(), ["Work", "Home"]);
     }
 
     #[test]

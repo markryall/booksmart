@@ -12,6 +12,7 @@ use ratatui::widgets::{Block, List, ListItem, ListState, Paragraph};
 
 use crate::bookmarks::{self, Bookmark};
 use crate::config::Config;
+use crate::form::{self, Form};
 
 pub struct App {
     pub config: Config,
@@ -25,6 +26,7 @@ pub struct App {
     query: String,
     selected: usize,
     matcher: Matcher,
+    form: Option<Form>,
 }
 
 impl App {
@@ -39,6 +41,7 @@ impl App {
             query: String::new(),
             selected: 0,
             matcher: Matcher::default(),
+            form: None,
         };
         app.reload();
         app
@@ -92,8 +95,20 @@ impl App {
 
     pub fn handle_key(&mut self, key: KeyEvent) {
         let ctrl = key.modifiers.contains(KeyModifiers::CONTROL);
+        if ctrl && key.code == KeyCode::Char('c') {
+            self.should_quit = true;
+            return;
+        }
+        if let Some(form) = &mut self.form {
+            match form.handle_key(key) {
+                form::Action::Continue => {}
+                form::Action::Cancel => self.form = None,
+                form::Action::Submit => self.save_form(),
+            }
+            return;
+        }
         match key.code {
-            KeyCode::Char('c') if ctrl => self.should_quit = true,
+            KeyCode::Char('n') if ctrl => self.open_form(),
             KeyCode::Esc if self.query.is_empty() => self.should_quit = true,
             KeyCode::Esc => self.set_query(String::new()),
             KeyCode::Enter => {
@@ -118,6 +133,29 @@ impl App {
                 self.set_query(query);
             }
             _ => {}
+        }
+    }
+
+    /// Opens the new-bookmark form, loading the spaces it picks from only now.
+    fn open_form(&mut self) {
+        self.form = Some(match self.config.browser.spaces() {
+            Ok(spaces) => Form::new(spaces, None),
+            Err(e) => Form::new(Vec::new(), Some(format!("{e:#}"))),
+        });
+    }
+
+    fn save_form(&mut self) {
+        let Some(form) = &mut self.form else { return };
+        let bookmark = form.bookmark();
+        let result = validate(&bookmark, &self.bookmarks).and_then(|()| {
+            bookmarks::append(&self.config.bookmarks, &bookmark).map_err(|e| format!("{e:#}"))
+        });
+        match result {
+            Ok(()) => {
+                self.form = None;
+                self.reload();
+            }
+            Err(message) => form.error = Some(message),
         }
     }
 
@@ -187,8 +225,30 @@ impl App {
         }
 
         frame.render_widget(
-            Line::from("type to filter · ↑↓ select · enter open · esc clear/quit").dim(),
+            Line::from("type to filter · ↑↓ select · enter open · ctrl-n new · esc clear/quit")
+                .dim(),
             footer,
         );
+
+        if let Some(form) = &self.form {
+            form.render(frame);
+        }
     }
+}
+
+/// Why a bookmark can't be saved, if it can't.
+fn validate(bookmark: &Bookmark, existing: &[Bookmark]) -> Result<(), String> {
+    if bookmark.name.is_empty() {
+        return Err("needs a name".into());
+    }
+    if bookmark.urls.is_empty() {
+        return Err("needs a url".into());
+    }
+    if bookmark.space.is_empty() {
+        return Err("needs a space".into());
+    }
+    if existing.iter().any(|b| b.name == bookmark.name) {
+        return Err(format!("already a bookmark called {}", bookmark.name));
+    }
+    Ok(())
 }

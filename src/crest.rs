@@ -302,6 +302,21 @@ mod tests {
     }
 
     #[test]
+    fn spaces_come_from_list_spaces() {
+        let (mut client, _) = fake_crest(spaces());
+        let names: Vec<_> = client
+            .spaces()
+            .unwrap()
+            .into_iter()
+            .map(|s| s.name)
+            .collect();
+        assert_eq!(
+            names,
+            ["home", "side project", "work-test", "Work", "Vault"]
+        );
+    }
+
+    #[test]
     fn a_locked_space_is_refused() {
         let (mut client, calls) = fake_crest(spaces());
         assert!(
