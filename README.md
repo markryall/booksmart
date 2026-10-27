@@ -52,6 +52,18 @@ cargo install booksmart
 New and edited bookmarks are written back without disturbing anything else
 in the file, comments included.
 
+## Straight from the shell
+
+`booksmart <name> [values..]` opens a bookmark without the TUI, filling its
+placeholders from the values: words in order for `{1}` `{2}`.., the rest for
+`{*}`.
+
+```sh
+booksmart mail-work
+booksmart order 42
+booksmart search sci who
+```
+
 ## Config
 
 `~/.config/booksmart/config.toml`, or wherever `$BOOKSMART_CONFIG` points:

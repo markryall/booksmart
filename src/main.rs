@@ -1,8 +1,9 @@
 use std::time::Duration;
 
-use anyhow::{Result, bail};
+use anyhow::Result;
 use booksmart::app::App;
-use booksmart::bookmarks::Bookmark;
+use booksmart::bookmarks::{self, Bookmark};
+use booksmart::cli::{self, Invocation};
 use booksmart::config::Config;
 use ratatui::DefaultTerminal;
 use ratatui::crossterm::event::{self, Event, KeyEventKind};
@@ -10,32 +11,33 @@ use ratatui::crossterm::event::{self, Event, KeyEventKind};
 const HELP: &str = "\
 booksmart: fuzzy-filter your bookmarks and open them in the right browser space
 
-usage: booksmart [--help | --version]
+usage: booksmart                    pick a bookmark in the TUI
+       booksmart <name> [values..]  open one straight away, filling {1} {2}.. {*}
+       booksmart --help | --version
 
 Reads ~/.config/booksmart/config.toml, or the file $BOOKSMART_CONFIG names.
 See https://github.com/markryall/booksmart for the bookmark and config format.
 ";
 
 fn main() -> Result<()> {
-    match std::env::args().nth(1).as_deref() {
-        None => {}
-        Some("-h" | "--help") => {
-            print!("{HELP}");
-            return Ok(());
+    match cli::parse(std::env::args().skip(1))? {
+        Invocation::Help => print!("{HELP}"),
+        Invocation::Version => println!("booksmart {}", env!("CARGO_PKG_VERSION")),
+        Invocation::Open { name, values } => {
+            let config = Config::load()?;
+            let marks = bookmarks::parse(&bookmarks::read(&config.bookmarks)?)?;
+            let bookmark = cli::resolve(&marks, &name, &values)?;
+            config.browser.open(&bookmark.space, &bookmark.urls)?;
         }
-        Some("-V" | "--version") => {
-            println!("booksmart {}", env!("CARGO_PKG_VERSION"));
-            return Ok(());
+        Invocation::Tui => {
+            let config = Config::load()?;
+            let mut terminal = ratatui::init();
+            let chosen = run(&mut terminal, App::new(config.clone()));
+            ratatui::restore();
+            if let Some(bookmark) = chosen? {
+                config.browser.open(&bookmark.space, &bookmark.urls)?;
+            }
         }
-        Some(other) => bail!("unknown argument {other} (try --help)"),
-    }
-
-    let config = Config::load()?;
-    let mut terminal = ratatui::init();
-    let chosen = run(&mut terminal, App::new(config.clone()));
-    ratatui::restore();
-    if let Some(bookmark) = chosen? {
-        config.browser.open(&bookmark.space, &bookmark.urls)?;
     }
     Ok(())
 }

@@ -1,6 +1,7 @@
 pub mod app;
 pub mod bookmarks;
 pub mod browser;
+pub mod cli;
 pub mod config;
 pub mod crest;
 pub mod form;
