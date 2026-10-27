@@ -1,0 +1,26 @@
+name = "8 stay open after launching"
+status = "todo"
+description = "Enter opens the bookmark (after any values prompt) and keeps booksmart running, so several bookmarks can be opened in one go. Changes card 3, where Enter quit. Esc and Ctrl-C remain the way out."
+created_at = "2026-10-27T12:26:58.006724Z"
+updated_at = "2026-10-27T12:26:58.023182Z"
+tags = ["feature"]
+
+[[checklist]]
+text = "feature: Enter opens the bookmark and the list is still on screen afterwards"
+checked = false
+
+[[checklist]]
+text = "feature: two bookmarks opened one after the other both reach the browser"
+checked = false
+
+[[checklist]]
+text = "feature: the filter clears after opening, ready for the next one"
+checked = false
+
+[[checklist]]
+text = "feature: a failed open shows the error in the status line instead of exiting"
+checked = false
+
+[[checklist]]
+text = "decide: whether the browser command's own output is hidden or shown in the status line, since it now runs while the TUI is drawn"
+checked = false

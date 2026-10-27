@@ -1,0 +1,26 @@
+name = "7 one-shot launch"
+status = "todo"
+description = "booksmart <name> [values..] opens that bookmark straight away, without the TUI, filling any {1} {2}.. {*} placeholders from the values (same filling as the prompt). Launching only: no list, tags, add or edit subcommands like b had."
+created_at = "2026-10-27T12:26:57.986087Z"
+updated_at = "2026-10-27T12:26:58.003299Z"
+tags = ["feature"]
+
+[[checklist]]
+text = "feature: booksmart <name> opens the bookmark in its space via the browser adapter and exits 0, without drawing the TUI"
+checked = false
+
+[[checklist]]
+text = "feature: booksmart <name> 42 7 fills {1} and {2}; extra words go to {*}, escaped"
+checked = false
+
+[[checklist]]
+text = "feature: an unknown name exits non-zero and suggests the closest bookmark names"
+checked = false
+
+[[checklist]]
+text = "feature: a missing value exits non-zero naming the placeholder, and nothing opens"
+checked = false
+
+[[checklist]]
+text = "unit: --help and --version still answer, and a name that starts with - is still an unknown argument"
+checked = false
