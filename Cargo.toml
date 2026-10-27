@@ -2,6 +2,13 @@
 name = "booksmart"
 version = "0.1.0"
 edition = "2024"
+authors = ["Mark Ryall"]
+description = "A terminal bookmark launcher: fuzzy-filter TOML bookmarks and open them in the right browser space"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/markryall/booksmart"
+readme = "README.md"
+keywords = ["cli", "tui", "bookmarks", "browser", "launcher"]
+categories = ["command-line-utilities"]
 
 [dependencies]
 anyhow = "1.0.104"
