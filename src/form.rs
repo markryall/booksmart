@@ -2,12 +2,12 @@
 
 use ratatui::Frame;
 use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
-use ratatui::layout::{Constraint, Flex, Layout, Rect};
 use ratatui::style::{Style, Stylize};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Clear, Paragraph};
 
 use crate::bookmarks::Bookmark;
+use crate::popup::centered;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 enum Field {
@@ -203,16 +203,6 @@ impl Form {
             .border_style(Style::new().cyan());
         frame.render_widget(Paragraph::new(lines).block(block), area);
     }
-}
-
-fn centered(area: Rect, width: u16, height: u16) -> Rect {
-    let [area] = Layout::horizontal([Constraint::Length(width)])
-        .flex(Flex::Center)
-        .areas(area);
-    let [area] = Layout::vertical([Constraint::Length(height)])
-        .flex(Flex::Center)
-        .areas(area);
-    area
 }
 
 #[cfg(test)]

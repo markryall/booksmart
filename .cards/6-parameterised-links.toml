@@ -1,22 +1,22 @@
 name = "6 parameterised links"
-status = "todo"
-description = "Urls may hold {1} {2}.. and {*} placeholders. Opening one asks for the values inline before launching; values are url-escaped. The exact launching experience is still open, so this card settles it first."
+status = "done"
+description = "Urls may hold {1} {2}.. and {*} placeholders. Decision: Enter on a templated bookmark opens an inline prompt (typing args into the filter would filter the bookmark away, since the match is fuzzy across words). Words fill {1} {2}.. in order and {*} takes the rest joined with spaces; values are url-escaped; the filled url previews live as you type. Enter opens, Esc returns to the list, a missing value names its placeholder. A direct 'booksmart <name> <args>' command is a later card."
 created_at = "2026-10-27T10:44:00.542926Z"
-updated_at = "2026-10-27T10:44:00.555458Z"
+updated_at = "2026-10-27T10:56:32.956515Z"
 tags = ["feature"]
 
 [[checklist]]
 text = "decide: how values are entered (inline prompt vs typing them after the name in the filter) and record it in the card"
-checked = false
+checked = true
 
 [[checklist]]
 text = "feature: opening a {1} bookmark prompts, and the adapter receives the filled, escaped url"
-checked = false
+checked = true
 
 [[checklist]]
 text = "feature: {*} takes the whole remaining input joined with spaces"
-checked = false
+checked = true
 
 [[checklist]]
 text = "unit: missing values refuse to open and say which placeholder is unfilled"
-checked = false
+checked = true

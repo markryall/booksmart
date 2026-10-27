@@ -13,6 +13,8 @@ use ratatui::widgets::{Block, List, ListItem, ListState, Paragraph};
 use crate::bookmarks::{self, Bookmark};
 use crate::config::Config;
 use crate::form::{self, Form};
+use crate::prompt::{self, Prompt};
+use crate::template;
 
 pub struct App {
     pub config: Config,
@@ -27,6 +29,7 @@ pub struct App {
     selected: usize,
     matcher: Matcher,
     form: Option<Form>,
+    prompt: Option<Prompt>,
 }
 
 impl App {
@@ -42,6 +45,7 @@ impl App {
             selected: 0,
             matcher: Matcher::default(),
             form: None,
+            prompt: None,
         };
         app.reload();
         app
@@ -99,6 +103,17 @@ impl App {
             self.should_quit = true;
             return;
         }
+        if let Some(prompt) = &mut self.prompt {
+            match prompt.handle_key(key) {
+                prompt::Action::Continue => {}
+                prompt::Action::Cancel => self.prompt = None,
+                prompt::Action::Open(bookmark) => {
+                    self.chosen = Some(bookmark);
+                    self.should_quit = true;
+                }
+            }
+            return;
+        }
         if let Some(form) = &mut self.form {
             match form.handle_key(key) {
                 form::Action::Continue => {}
@@ -119,9 +134,13 @@ impl App {
             KeyCode::Esc => self.set_query(String::new()),
             KeyCode::Enter => {
                 let selected = self.selected;
-                if let Some(bookmark) = self.visible().get(selected) {
-                    self.chosen = Some((*bookmark).clone());
-                    self.should_quit = true;
+                if let Some(bookmark) = self.visible().get(selected).map(|b| (*b).clone()) {
+                    if template::is_template(&bookmark.urls) {
+                        self.prompt = Some(Prompt::new(bookmark));
+                    } else {
+                        self.chosen = Some(bookmark);
+                        self.should_quit = true;
+                    }
                 }
             }
             KeyCode::Up => self.selected = self.selected.saturating_sub(1),
@@ -256,6 +275,9 @@ impl App {
 
         if let Some(form) = &self.form {
             form.render(frame);
+        }
+        if let Some(prompt) = &self.prompt {
+            prompt.render(frame);
         }
     }
 }

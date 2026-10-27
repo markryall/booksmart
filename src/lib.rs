@@ -4,3 +4,6 @@ pub mod browser;
 pub mod config;
 pub mod crest;
 pub mod form;
+pub mod popup;
+pub mod prompt;
+pub mod template;
