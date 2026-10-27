@@ -163,6 +163,8 @@ impl Crest {
             .arg("mcp")
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
+            // keep its logging off the TUI
+            .stderr(Stdio::null())
             .spawn()
             .with_context(|| format!("starting {} (is Crest installed?)", path.display()))?;
         let reader = BufReader::new(child.stdout.take().expect("piped stdout"));

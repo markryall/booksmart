@@ -43,7 +43,7 @@ cargo install booksmart
 |---|---|
 | type | filter the list (fuzzy) |
 | ↑ ↓ | select |
-| Enter | open the bookmark, asking first for any `{1}` `{2}`.. `{*}` values |
+| Enter | open the bookmark (asking first for any `{1}` `{2}`.. `{*}` values) and stay open for the next |
 | Ctrl-N | new bookmark, picking its space from the browser's |
 | Ctrl-E | edit the selected bookmark |
 | Ctrl-U | clear a field |

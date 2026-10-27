@@ -1,8 +1,9 @@
-//! Card 3: Enter opens the selected bookmark in its space.
+//! Card 3: Enter opens the selected bookmark in its space (and, since card 8,
+//! booksmart stays open afterwards).
 
 mod support;
 
-use support::{Key, World};
+use support::{Key, World, eventually};
 
 const MARKS: &str = r#"
 [mail-work]
@@ -41,15 +42,12 @@ fn opened(world: &World) -> Vec<String> {
 }
 
 #[test]
-fn enter_opens_the_selected_bookmark_in_its_space_and_quits() {
+fn enter_opens_the_selected_bookmark_in_its_space() {
     let world = recording_world();
     let mut session = world.launch();
     session.expect("mail-work");
     session.press(Key::Enter);
-    assert!(
-        session.wait_exit(),
-        "booksmart exited with a failure status"
-    );
+    eventually("the bookmark opened", || opened(&world).len() == 1);
     assert_eq!(opened(&world), ["Work|https://mail.example.com"]);
 }
 
@@ -60,10 +58,7 @@ fn a_multi_url_bookmark_opens_every_url_in_order() {
     session.expect("docs");
     session.press(Key::Down);
     session.press(Key::Enter);
-    assert!(
-        session.wait_exit(),
-        "booksmart exited with a failure status"
-    );
+    eventually("the bookmark opened", || opened(&world).len() == 2);
     assert_eq!(
         opened(&world),
         [
@@ -81,9 +76,6 @@ fn enter_opens_the_top_match_of_a_filter() {
     session.type_text("docs");
     session.expect_gone("mail.example.com");
     session.press(Key::Enter);
-    assert!(
-        session.wait_exit(),
-        "booksmart exited with a failure status"
-    );
+    eventually("the bookmark opened", || opened(&world).len() == 2);
     assert_eq!(opened(&world)[0], "Home|https://docs.example.com");
 }

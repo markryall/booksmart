@@ -19,12 +19,12 @@ use crate::template;
 pub struct App {
     pub config: Config,
     pub should_quit: bool,
-    /// The bookmark Enter picked, to open once the terminal is restored.
-    pub chosen: Option<Bookmark>,
     bookmarks: Vec<Bookmark>,
     /// The file's text as last read, so a reload only reparses when it changed.
     last_read: Option<String>,
     error: Option<String>,
+    /// What the last open did: what opened, or why it couldn't.
+    notice: Option<Result<String, String>>,
     query: String,
     selected: usize,
     matcher: Matcher,
@@ -37,10 +37,10 @@ impl App {
         let mut app = App {
             config,
             should_quit: false,
-            chosen: None,
             bookmarks: Vec::new(),
             last_read: None,
             error: None,
+            notice: None,
             query: String::new(),
             selected: 0,
             matcher: Matcher::default(),
@@ -108,8 +108,8 @@ impl App {
                 prompt::Action::Continue => {}
                 prompt::Action::Cancel => self.prompt = None,
                 prompt::Action::Open(bookmark) => {
-                    self.chosen = Some(bookmark);
-                    self.should_quit = true;
+                    self.prompt = None;
+                    self.launch(&bookmark);
                 }
             }
             return;
@@ -138,8 +138,7 @@ impl App {
                     if template::is_template(&bookmark.urls) {
                         self.prompt = Some(Prompt::new(bookmark));
                     } else {
-                        self.chosen = Some(bookmark);
-                        self.should_quit = true;
+                        self.launch(&bookmark);
                     }
                 }
             }
@@ -202,6 +201,17 @@ impl App {
         }
     }
 
+    /// Opens the bookmark and stays put, clearing the filter for the next one.
+    fn launch(&mut self, bookmark: &Bookmark) {
+        self.notice = Some(
+            match self.config.browser.open(&bookmark.space, &bookmark.urls) {
+                Ok(()) => Ok(format!("opened {} in {}", bookmark.name, bookmark.space)),
+                Err(e) => Err(format!("{e:#}")),
+            },
+        );
+        self.set_query(String::new());
+    }
+
     fn set_query(&mut self, query: String) {
         self.query = query;
         self.selected = 0;
@@ -262,8 +272,14 @@ impl App {
             frame.render_stateful_widget(list, body, &mut state);
         }
 
-        if let Some(error) = &self.error {
-            let line = Line::from(format!("can't read bookmarks: {error}")).red();
+        // a broken bookmarks file matters more than how the last open went
+        let line = match (&self.error, &self.notice) {
+            (Some(error), _) => Some(Line::from(format!("can't read bookmarks: {error}")).red()),
+            (None, Some(Ok(done))) => Some(Line::from(done.clone()).dim()),
+            (None, Some(Err(failed))) => Some(Line::from(failed.clone()).red()),
+            (None, None) => None,
+        };
+        if let Some(line) = line {
             frame.render_widget(line, status);
         }
 

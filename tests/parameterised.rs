@@ -2,7 +2,7 @@
 
 mod support;
 
-use support::{Key, World};
+use support::{Key, World, eventually};
 
 const MARKS: &str = r#"
 [supplier]
@@ -49,10 +49,7 @@ fn positional_values_are_prompted_for_and_filled() {
     session.type_text("42 7");
     session.expect("https://shop.example.com/suppliers/42/orders/7");
     session.press(Key::Enter);
-    assert!(
-        session.wait_exit(),
-        "booksmart exited with a failure status"
-    );
+    eventually("the bookmark opened", || opened(&world).len() == 1);
     assert_eq!(
         opened(&world),
         ["Work|https://shop.example.com/suppliers/42/orders/7"]
@@ -69,10 +66,7 @@ fn star_takes_the_whole_input_escaped() {
     session.expect("open search");
     session.type_text("sci who & co");
     session.press(Key::Enter);
-    assert!(
-        session.wait_exit(),
-        "booksmart exited with a failure status"
-    );
+    eventually("the bookmark opened", || opened(&world).len() == 1);
     assert_eq!(
         opened(&world),
         ["Home|https://search.example.com/?q=sci%20who%20%26%20co&order=name"]

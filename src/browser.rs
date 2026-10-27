@@ -3,7 +3,7 @@
 //! browser and ignores spaces.
 
 use std::path::PathBuf;
-use std::process::Command;
+use std::process::{Command, Stdio};
 
 use anyhow::{Context, Result, bail};
 use serde::Deserialize;
@@ -69,12 +69,21 @@ fn run(command: &[String], space: &str, url: &str) -> Result<()> {
         bail!("the browser command is empty");
     };
     let fill = |arg: &String| arg.replace("{space}", space).replace("{url}", url);
-    let status = Command::new(fill(program))
+    // the TUI may be on screen, so the command's output is kept off it, and
+    // its stderr only surfaces as the reason it failed
+    let output = Command::new(fill(program))
         .args(args.iter().map(fill))
-        .status()
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::piped())
+        .output()
         .with_context(|| format!("running {program}"))?;
-    if !status.success() {
-        bail!("{program} failed ({status}) opening {url}");
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        match stderr.trim() {
+            "" => bail!("{program} failed ({}) opening {url}", output.status),
+            reason => bail!("{program} failed opening {url}: {reason}"),
+        }
     }
     Ok(())
 }
@@ -154,6 +163,16 @@ mod tests {
             spaces: vec!["Work".into(), "Home".into()],
         };
         assert_eq!(browser.spaces().unwrap(), ["Work", "Home"]);
+    }
+
+    #[test]
+    fn a_failing_command_reports_its_stderr() {
+        let browser = Browser::Command {
+            command: vec!["sh".into(), "-c".into(), "echo boom >&2; exit 3".into()],
+            spaces: vec![],
+        };
+        let error = browser.open("Work", &["x.com".into()]).unwrap_err();
+        assert!(error.to_string().contains("boom"), "{error}");
     }
 
     #[test]

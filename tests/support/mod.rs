@@ -55,6 +55,18 @@ impl World {
     }
 }
 
+/// Polls until `check` passes, panicking with `what` if it never does.
+pub fn eventually(what: &str, mut check: impl FnMut() -> bool) {
+    let start = Instant::now();
+    while start.elapsed() < TIMEOUT {
+        if check() {
+            return;
+        }
+        thread::sleep(Duration::from_millis(20));
+    }
+    panic!("never happened: {what}");
+}
+
 pub struct Session {
     screen: Arc<Mutex<vt100::Parser>>,
     writer: Box<dyn Write + Send>,
@@ -154,6 +166,11 @@ impl Session {
         };
         self.writer.write_all(bytes).unwrap();
         self.writer.flush().unwrap();
+    }
+
+    /// Whether booksmart is still running.
+    pub fn running(&mut self) -> bool {
+        self.child.try_wait().unwrap().is_none()
     }
 
     /// Waits for the process to exit and returns whether it succeeded.
