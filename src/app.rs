@@ -16,6 +16,8 @@ use crate::config::Config;
 pub struct App {
     pub config: Config,
     pub should_quit: bool,
+    /// The bookmark Enter picked, to open once the terminal is restored.
+    pub chosen: Option<Bookmark>,
     bookmarks: Vec<Bookmark>,
     /// The file's text as last read, so a reload only reparses when it changed.
     last_read: Option<String>,
@@ -30,6 +32,7 @@ impl App {
         let mut app = App {
             config,
             should_quit: false,
+            chosen: None,
             bookmarks: Vec::new(),
             last_read: None,
             error: None,
@@ -93,6 +96,13 @@ impl App {
             KeyCode::Char('c') if ctrl => self.should_quit = true,
             KeyCode::Esc if self.query.is_empty() => self.should_quit = true,
             KeyCode::Esc => self.set_query(String::new()),
+            KeyCode::Enter => {
+                let selected = self.selected;
+                if let Some(bookmark) = self.visible().get(selected) {
+                    self.chosen = Some((*bookmark).clone());
+                    self.should_quit = true;
+                }
+            }
             KeyCode::Up => self.selected = self.selected.saturating_sub(1),
             KeyCode::Down => {
                 self.selected += 1;
@@ -177,7 +187,7 @@ impl App {
         }
 
         frame.render_widget(
-            Line::from("type to filter · ↑↓ select · esc clear/quit").dim(),
+            Line::from("type to filter · ↑↓ select · enter open · esc clear/quit").dim(),
             footer,
         );
     }

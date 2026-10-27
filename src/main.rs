@@ -2,6 +2,7 @@ use std::time::Duration;
 
 use anyhow::Result;
 use booksmart::app::App;
+use booksmart::bookmarks::Bookmark;
 use booksmart::config::Config;
 use ratatui::DefaultTerminal;
 use ratatui::crossterm::event::{self, Event, KeyEventKind};
@@ -9,12 +10,16 @@ use ratatui::crossterm::event::{self, Event, KeyEventKind};
 fn main() -> Result<()> {
     let config = Config::load()?;
     let mut terminal = ratatui::init();
-    let result = run(&mut terminal, App::new(config));
+    let chosen = run(&mut terminal, App::new(config.clone()));
     ratatui::restore();
-    result
+    if let Some(bookmark) = chosen? {
+        config.browser.open(&bookmark.space, &bookmark.urls)?;
+    }
+    Ok(())
 }
 
-fn run(terminal: &mut DefaultTerminal, mut app: App) -> Result<()> {
+/// Runs the TUI until it quits, answering the bookmark picked to open, if any.
+fn run(terminal: &mut DefaultTerminal, mut app: App) -> Result<Option<Bookmark>> {
     while !app.should_quit {
         app.reload();
         terminal.draw(|frame| app.render(frame))?;
@@ -26,5 +31,5 @@ fn run(terminal: &mut DefaultTerminal, mut app: App) -> Result<()> {
             app.handle_key(key);
         }
     }
-    Ok(())
+    Ok(app.chosen)
 }

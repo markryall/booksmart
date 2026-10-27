@@ -1,22 +1,22 @@
 name = "3 open in browser space"
-status = "todo"
+status = "done"
 description = "Enter opens the selected bookmark's urls in its space via the configured browser adapter. Adapters: command (runs a configured argv with {url} and {space}) and crest (Crest MCP server via crest-browser mcp, as b.py does)."
 created_at = "2026-10-27T10:44:00.495474Z"
-updated_at = "2026-10-27T10:44:00.507566Z"
+updated_at = "2026-10-27T10:50:39.789658Z"
 tags = ["feature"]
 
 [[checklist]]
 text = "feature: Enter on a bookmark runs the command adapter once per url with its space, then booksmart quits"
-checked = false
+checked = true
 
 [[checklist]]
 text = "feature: a multi-url bookmark opens every url in order"
-checked = false
+checked = true
 
 [[checklist]]
 text = "unit: crest adapter matches the space loosely (case and punctuation) and calls open_tab with show on the last url, against a fake MCP server"
-checked = false
+checked = true
 
 [[checklist]]
 text = "unit: urls without a scheme get https:// prepended"
-checked = false
+checked = true

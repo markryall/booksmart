@@ -7,15 +7,19 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context, Result};
 use serde::Deserialize;
 
+use crate::browser::Browser;
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct Config {
     pub bookmarks: PathBuf,
+    pub browser: Browser,
 }
 
 #[derive(Debug, Default, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct RawConfig {
     bookmarks: Option<String>,
+    browser: Option<Browser>,
 }
 
 impl Config {
@@ -41,7 +45,10 @@ impl Config {
             Some(path) => expand(&path, home),
             None => home.join(".config/booksmart/bookmarks.toml"),
         };
-        Ok(Config { bookmarks })
+        Ok(Config {
+            bookmarks,
+            browser: raw.browser.unwrap_or_default(),
+        })
     }
 }
 
@@ -90,6 +97,34 @@ mod tests {
         let config =
             Config::parse(r#"bookmarks = "/tmp/marks.toml""#, Path::new("/home/me")).unwrap();
         assert_eq!(config.bookmarks, Path::new("/tmp/marks.toml"));
+    }
+
+    #[test]
+    fn browser_defaults_to_the_system_browser() {
+        let config = Config::parse("", Path::new("/home/me")).unwrap();
+        assert_eq!(config.browser, Browser::default());
+    }
+
+    #[test]
+    fn crest_browser_defaults_its_path() {
+        let config = Config::parse("[browser]\ntype = 'crest'\n", Path::new("/home/me")).unwrap();
+        assert_eq!(
+            config.browser,
+            Browser::Crest {
+                path: crate::crest::default_path()
+            }
+        );
+    }
+
+    #[test]
+    fn unknown_browser_settings_are_rejected() {
+        assert!(
+            Config::parse(
+                "[browser]\ntype = 'crest'\npth = 'x'\n",
+                Path::new("/home/me")
+            )
+            .is_err()
+        );
     }
 
     #[test]
