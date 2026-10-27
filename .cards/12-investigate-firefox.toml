@@ -1,0 +1,14 @@
+name = "12 investigate firefox"
+status = "todo"
+description = "Firefox profiles via profiles.ini and -P, like Zen (which is Firefox-based). Check whether a running Firefox accepts urls for another profile, and whether Firefox and Zen can share one adapter."
+created_at = "2026-10-27T12:38:00.263457Z"
+updated_at = "2026-10-27T12:38:00.270121Z"
+tags = ["investigate"]
+
+[[checklist]]
+text = "decide: whether a firefox adapter is possible, with evidence, recorded on this card"
+checked = false
+
+[[checklist]]
+text = "decide: share the zen adapter or keep them separate"
+checked = false

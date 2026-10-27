@@ -1,0 +1,14 @@
+name = "10 investigate chrome"
+status = "todo"
+description = "Find out whether Chrome profiles can stand in for spaces: names from Local State's profile.info_cache, opening with --profile-directory, and whether a running instance honours it. Record findings and, if it works, write the adapter card."
+created_at = "2026-10-27T12:38:00.242892Z"
+updated_at = "2026-10-27T12:38:00.250430Z"
+tags = ["investigate"]
+
+[[checklist]]
+text = "decide: whether a chrome adapter is possible, with evidence, recorded on this card"
+checked = false
+
+[[checklist]]
+text = "if possible: an adapter card with acceptance criteria"
+checked = false

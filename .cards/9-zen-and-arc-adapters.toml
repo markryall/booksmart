@@ -1,0 +1,26 @@
+name = "9 zen and arc adapters"
+status = "todo"
+description = "Browser adapters for Zen and Arc, so booksmart works where b and arc did before Crest. Zen: profiles are its spaces, listed from ~/Library/Application Support/zen/profiles.ini, opened with open -na Zen --args -P <profile> --new-tab <url> (a fresh process hands the urls to that profile's running instance). Arc: spaces through Arc's AppleScript dictionary."
+created_at = "2026-10-27T12:38:00.222736Z"
+updated_at = "2026-10-27T12:38:00.239699Z"
+tags = ["feature"]
+
+[[checklist]]
+text = 'feature: type = "zen" lists profile names as spaces in the create form'
+checked = false
+
+[[checklist]]
+text = "unit: zen opens each url in the profile matched loosely (case and punctuation), one launch per bookmark"
+checked = false
+
+[[checklist]]
+text = """unit: type = "arc" lists Arc's spaces and opens urls as tabs of the matched space"""
+checked = false
+
+[[checklist]]
+text = "unit: a missing browser or unknown space is an error naming the known ones"
+checked = false
+
+[[checklist]]
+text = "docs: README describes both, with their config"
+checked = false

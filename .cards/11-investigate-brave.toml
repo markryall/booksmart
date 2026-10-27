@@ -1,0 +1,14 @@
+name = "11 investigate brave"
+status = "todo"
+description = "Brave is Chromium-based, so probably the same as Chrome with a different app and data directory. Confirm, and whether one chromium adapter can cover Chrome, Brave and friends with a configurable app and profile path."
+created_at = "2026-10-27T12:38:00.253855Z"
+updated_at = "2026-10-27T12:38:00.260290Z"
+tags = ["investigate"]
+
+[[checklist]]
+text = "decide: whether brave works like chrome, with evidence, recorded on this card"
+checked = false
+
+[[checklist]]
+text = "decide: one shared chromium adapter or separate ones"
+checked = false
