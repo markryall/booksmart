@@ -108,7 +108,13 @@ impl App {
             return;
         }
         match key.code {
-            KeyCode::Char('n') if ctrl => self.open_form(),
+            KeyCode::Char('n') if ctrl => self.open_form(None),
+            KeyCode::Char('e') if ctrl => {
+                let selected = self.selected;
+                if let Some(bookmark) = self.visible().get(selected).map(|b| (*b).clone()) {
+                    self.open_form(Some(bookmark));
+                }
+            }
             KeyCode::Esc if self.query.is_empty() => self.should_quit = true,
             KeyCode::Esc => self.set_query(String::new()),
             KeyCode::Enter => {
@@ -136,19 +142,37 @@ impl App {
         }
     }
 
-    /// Opens the new-bookmark form, loading the spaces it picks from only now.
-    fn open_form(&mut self) {
-        self.form = Some(match self.config.browser.spaces() {
-            Ok(spaces) => Form::new(spaces, None),
-            Err(e) => Form::new(Vec::new(), Some(format!("{e:#}"))),
+    /// Opens the form for a new bookmark, or to edit one, loading the spaces
+    /// it picks from only now.
+    fn open_form(&mut self, editing: Option<Bookmark>) {
+        let (spaces, error) = match self.config.browser.spaces() {
+            Ok(spaces) => (spaces, None),
+            Err(e) => (Vec::new(), Some(format!("{e:#}"))),
+        };
+        self.form = Some(match editing {
+            Some(bookmark) => Form::edit(&bookmark, spaces, error),
+            None => Form::new(spaces, error),
         });
     }
 
     fn save_form(&mut self) {
         let Some(form) = &mut self.form else { return };
         let bookmark = form.bookmark();
-        let result = validate(&bookmark, &self.bookmarks).and_then(|()| {
-            bookmarks::append(&self.config.bookmarks, &bookmark).map_err(|e| format!("{e:#}"))
+        let original = form.original.as_deref();
+        // an edit may keep its own name, just not take another bookmark's
+        let others: Vec<Bookmark> = self
+            .bookmarks
+            .iter()
+            .filter(|b| Some(b.name.as_str()) != original)
+            .cloned()
+            .collect();
+        let path = &self.config.bookmarks;
+        let result = validate(&bookmark, &others).and_then(|()| {
+            match original {
+                Some(original) => bookmarks::replace(path, original, &bookmark),
+                None => bookmarks::append(path, &bookmark),
+            }
+            .map_err(|e| format!("{e:#}"))
         });
         match result {
             Ok(()) => {
@@ -225,7 +249,7 @@ impl App {
         }
 
         frame.render_widget(
-            Line::from("type to filter · ↑↓ select · enter open · ctrl-n new · esc clear/quit")
+            Line::from("type to filter · ↑↓ select · enter open · ctrl-n new · ctrl-e edit · esc clear/quit")
                 .dim(),
             footer,
         );

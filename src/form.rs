@@ -36,6 +36,8 @@ pub struct Form {
     space_index: usize,
     focus: Field,
     pub error: Option<String>,
+    /// The name of the bookmark being edited; none for a new one.
+    pub original: Option<String>,
 }
 
 impl Form {
@@ -52,6 +54,34 @@ impl Form {
             space_index: 0,
             focus: Field::Name,
             error: spaces_error.map(|e| format!("couldn't load spaces: {e}")),
+            original: None,
+        }
+    }
+
+    /// A form filled in from an existing bookmark. Its space stays pickable
+    /// even when the browser doesn't list it.
+    pub fn edit(
+        bookmark: &Bookmark,
+        mut spaces: Vec<String>,
+        spaces_error: Option<String>,
+    ) -> Form {
+        let space_index = match spaces.iter().position(|s| *s == bookmark.space) {
+            Some(i) => i,
+            None if spaces.is_empty() => 0,
+            None => {
+                spaces.insert(0, bookmark.space.clone());
+                0
+            }
+        };
+        Form {
+            title: "edit bookmark",
+            name: bookmark.name.clone(),
+            urls: bookmark.urls.join(" "),
+            tags: bookmark.tags.join(" "),
+            space_text: bookmark.space.clone(),
+            space_index,
+            original: Some(bookmark.name.clone()),
+            ..Form::new(spaces, spaces_error)
         }
     }
 
@@ -79,6 +109,11 @@ impl Form {
             KeyCode::Up if self.picking() => self.space_index = self.space_index.saturating_sub(1),
             KeyCode::Down if self.picking() => {
                 self.space_index = (self.space_index + 1).min(self.spaces.len() - 1);
+            }
+            KeyCode::Char('u') if ctrl => {
+                if let Some(text) = self.text_mut() {
+                    text.clear();
+                }
             }
             KeyCode::Backspace => {
                 if let Some(text) = self.text_mut() {
@@ -233,6 +268,38 @@ mod tests {
         form.focus = Field::Space;
         type_text(&mut form, "Work");
         assert_eq!(form.bookmark().space, "Work");
+    }
+
+    fn docs() -> Bookmark {
+        Bookmark {
+            name: "docs".into(),
+            space: "Work".into(),
+            urls: vec!["a.example.com".into(), "b.example.com".into()],
+            tags: vec!["dev".into()],
+        }
+    }
+
+    #[test]
+    fn editing_starts_from_the_bookmark() {
+        let form = Form::edit(&docs(), vec!["Home".into(), "Work".into()], None);
+        assert_eq!(form.bookmark(), docs());
+        assert_eq!(form.original.as_deref(), Some("docs"));
+    }
+
+    #[test]
+    fn editing_keeps_a_space_the_browser_doesnt_list() {
+        let form = Form::edit(&docs(), vec!["Home".into()], None);
+        assert_eq!(form.bookmark().space, "Work");
+        let form = Form::edit(&docs(), vec![], None);
+        assert_eq!(form.bookmark().space, "Work");
+    }
+
+    #[test]
+    fn ctrl_u_clears_the_field() {
+        let mut form = Form::edit(&docs(), vec![], None);
+        form.handle_key(KeyEvent::new(KeyCode::Char('u'), KeyModifiers::CONTROL));
+        assert_eq!(form.bookmark().name, "");
+        assert_eq!(form.bookmark().urls.len(), 2);
     }
 
     #[test]

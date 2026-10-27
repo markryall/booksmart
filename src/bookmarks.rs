@@ -105,6 +105,63 @@ pub fn append(path: &Path, bookmark: &Bookmark) -> Result<()> {
     Ok(())
 }
 
+/// Rewrites the bookmark first called `original` in place: only the values
+/// that changed are touched, and a rename keeps the table where it was, with
+/// its comments.
+pub fn replace(path: &Path, original: &str, bookmark: &Bookmark) -> Result<()> {
+    let text = read(path)?;
+    let updated = replace_in(&text, original, bookmark)?;
+    if updated != text {
+        std::fs::write(path, updated).with_context(|| format!("writing {}", path.display()))?;
+    }
+    Ok(())
+}
+
+fn replace_in(text: &str, original: &str, bookmark: &Bookmark) -> Result<String> {
+    use toml_edit::{Array, DocumentMut, value};
+    let mut doc: DocumentMut = text.parse()?;
+    let table = doc
+        .get_mut(original)
+        .and_then(|item| item.as_table_mut())
+        .with_context(|| format!("no bookmark called {original} in the file"))?;
+
+    if table.get("space").and_then(|v| v.as_str()) != Some(bookmark.space.as_str()) {
+        table["space"] = value(bookmark.space.as_str());
+    }
+    if strings_of(table.get("url")) != bookmark.urls {
+        table["url"] = match bookmark.urls.as_slice() {
+            [url] => value(url.as_str()),
+            urls => value(urls.iter().map(String::as_str).collect::<Array>()),
+        };
+    }
+    if strings_of(table.get("tags")) != bookmark.tags {
+        if bookmark.tags.is_empty() {
+            table.remove("tags");
+        } else {
+            table["tags"] = value(bookmark.tags.iter().map(String::as_str).collect::<Array>());
+        }
+    }
+
+    if bookmark.name != original {
+        // a table keeps its position and decor (its comments) as it moves to a new key
+        let item = doc.remove(original).expect("found above");
+        doc.insert(&bookmark.name, item);
+    }
+    Ok(doc.to_string())
+}
+
+fn strings_of(item: Option<&toml_edit::Item>) -> Vec<String> {
+    match item.and_then(|i| i.as_value()) {
+        Some(toml_edit::Value::String(s)) => vec![s.value().clone()],
+        Some(toml_edit::Value::Array(items)) => items
+            .iter()
+            .filter_map(|v| v.as_str())
+            .map(str::to_string)
+            .collect(),
+        _ => Vec::new(),
+    }
+}
+
 /// A string, or a list of strings, as a list.
 fn strings(value: Option<&toml::Value>) -> Vec<String> {
     match value {
@@ -240,6 +297,53 @@ mod tests {
         let text = to_toml(&bookmark);
         assert!(text.contains(r#"["two words"]"#), "{text}");
         assert_eq!(parse(&text).unwrap(), [bookmark]);
+    }
+
+    const THREE: &str = "# top comment\n\n[one]  # first\nspace = 'a'\nurl = 'one.example.com'\n\n# about two\n[two]\nspace = \"Work\"\nurl = \"two.example.com\"\ntags = [\"x\"]\n\n[three]\nspace='c'   # odd\nurl=['3a', '3b']\n";
+
+    fn two() -> Bookmark {
+        parse(THREE).unwrap().remove(1)
+    }
+
+    #[test]
+    fn editing_one_table_leaves_every_other_byte_unchanged() {
+        let mut edited = two();
+        edited.space = "Home".into();
+        edited.urls = vec!["changed.example.com".into()];
+        let after = replace_in(THREE, "two", &edited).unwrap();
+        let before_two = THREE.find("[two]").unwrap();
+        let three = THREE.find("[three]").unwrap();
+        assert_eq!(&after[..before_two], &THREE[..before_two]);
+        assert!(after.ends_with(&THREE[three..]), "{after}");
+        assert_eq!(parse(&after).unwrap()[1], edited);
+    }
+
+    #[test]
+    fn an_unchanged_edit_changes_nothing() {
+        assert_eq!(replace_in(THREE, "two", &two()).unwrap(), THREE);
+    }
+
+    #[test]
+    fn renaming_keeps_position_and_comments() {
+        let mut renamed = two();
+        renamed.name = "deux".into();
+        let after = replace_in(THREE, "two", &renamed).unwrap();
+        let names: Vec<_> = parse(&after).unwrap().into_iter().map(|b| b.name).collect();
+        assert_eq!(names, ["one", "deux", "three"]);
+        assert!(after.contains("# about two\n[deux]"), "{after}");
+    }
+
+    #[test]
+    fn clearing_tags_removes_the_key() {
+        let mut untagged = two();
+        untagged.tags.clear();
+        let after = replace_in(THREE, "two", &untagged).unwrap();
+        assert!(!after.contains("tags"), "{after}");
+    }
+
+    #[test]
+    fn editing_a_missing_bookmark_is_an_error() {
+        assert!(replace_in(THREE, "nope", &two()).is_err());
     }
 
     #[test]
