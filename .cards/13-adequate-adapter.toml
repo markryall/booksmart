@@ -1,0 +1,22 @@
+name = "13 adequate adapter"
+status = "done"
+description = "type = \"adequate\": Adequate's spaces through its adequate CLI. adequate spaces lists them for the create form; adequate open <space> <url>.. opens a bookmark's urls as tabs in one call, and Adequate creates a space it doesn't have."
+created_at = "2026-11-15T12:40:00Z"
+updated_at = "2026-11-15T12:40:00Z"
+tags = ["feature"]
+
+[[checklist]]
+text = "unit: spaces are the non-empty lines adequate spaces prints"
+checked = true
+
+[[checklist]]
+text = "unit: a bookmark's urls open in one adequate open call, in order"
+checked = true
+
+[[checklist]]
+text = "unit: a failing adequate call reports its stderr; a missing CLI says to install it"
+checked = true
+
+[[checklist]]
+text = "unit: type = 'adequate' defaults path to adequate on the PATH"
+checked = true

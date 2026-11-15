@@ -117,6 +117,18 @@ mod tests {
     }
 
     #[test]
+    fn adequate_browser_finds_the_cli_on_the_path() {
+        let config =
+            Config::parse("[browser]\ntype = 'adequate'\n", Path::new("/home/me")).unwrap();
+        assert_eq!(
+            config.browser,
+            Browser::Adequate {
+                path: "adequate".into()
+            }
+        );
+    }
+
+    #[test]
     fn unknown_browser_settings_are_rejected() {
         assert!(
             Config::parse(

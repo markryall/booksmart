@@ -8,6 +8,7 @@ use std::process::{Command, Stdio};
 use anyhow::{Context, Result, bail};
 use serde::Deserialize;
 
+use crate::adequate;
 use crate::crest;
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
@@ -23,6 +24,11 @@ pub enum Browser {
     /// Crest's spaces, through the MCP server bundled with Crest.
     Crest {
         #[serde(default = "crest::default_path")]
+        path: PathBuf,
+    },
+    /// Adequate's spaces, through its `adequate` CLI.
+    Adequate {
+        #[serde(default = "adequate::default_path")]
         path: PathBuf,
     },
 }
@@ -46,6 +52,7 @@ impl Browser {
                 .into_iter()
                 .map(|s| s.name)
                 .collect()),
+            Browser::Adequate { path } => adequate::spaces(path),
         }
     }
 
@@ -60,6 +67,7 @@ impl Browser {
                 Ok(())
             }
             Browser::Crest { path } => crest::Crest::connect(path)?.open(space, &urls),
+            Browser::Adequate { path } => adequate::open(path, space, &urls),
         }
     }
 }

@@ -1,3 +1,4 @@
+pub mod adequate;
 pub mod app;
 pub mod bookmarks;
 pub mod browser;

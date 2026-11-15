@@ -80,6 +80,9 @@ Browsers:
 - **crest**: [Crest](https://github.com/pauljoda/Crest) spaces, through the
   MCP server bundled with Crest. Allow the spaces you want in Crest's
   Settings › Agents.
+- **adequate**: [Adequate](https://github.com/markryall/adequate) spaces, through
+  its `adequate` CLI (found on your `PATH`, or set `path`). A bookmark whose
+  space Adequate doesn't have yet creates it.
 - **command**: any command, run once per url with `{space}` and `{url}`
   filled in. `spaces` lists what the new-bookmark form offers. Without a
   `[browser]` section, booksmart uses `command = ["open", "{url}"]`, which
